@@ -1,0 +1,27 @@
+# --- Core Data Handling ---
+pandas
+numpy
+
+# --- API Connectors ---
+yfinance
+python-binance
+fredapi
+requests  # Useful for general API calls (e.g., ECOS, Opinet)
+
+# --- AWS & S3 ---
+boto3     # AWS SDK for Python (S3 upload/download)
+
+# --- Snowflake Connector ---
+snowflake-connector-python
+
+# --- Airflow Dependencies (Packages needed for Airflow to run your code) ---
+# NOTE: Airflow itself is installed via Docker, but these packages are needed 
+# inside the Airflow environment to run the DAG tasks.
+
+# --- Optional (If you use dbt) ---
+# dbt-core
+# dbt-snowflake
+
+# --- Optional (If you use Slack) ---
+# slack-sdk  # If using the Slack API directly in a Python task
+# apache-airflow-providers-slack # If using the official Airflow Slack Operator
