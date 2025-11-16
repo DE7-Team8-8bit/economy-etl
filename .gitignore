@@ -1,0 +1,20 @@
+# Airflow logs
+logs/
+
+# Airflow local SQLite DB (초기 상태)
+airflow.db
+
+# Python venv
+venv/
+__pycache__/
+
+# system
+*.pyc
+
+# OS files
+.DS_Store
+
+# Virtual env
+venv/
+.env
+.env.*
