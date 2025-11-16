@@ -1,5 +1,13 @@
 # Economy ETL Pipeline
 
+## docker 초기화
+
+```bash
+docker compose build # requirements.txt 고려한 이미지 빌드
+docker compose up # docker 생성 + 실행
+docker compose down # docker 중지 + 삭제
+```
+
 ## 프로젝트 개요
 
 본 프로젝트는 다양한 경제 지표를 대상으로 **End-to-End ETL 파이프라인**을 구축하는 것을 목표로 합니다.  
@@ -21,3 +29,4 @@
 Airflow DAG에서 자동으로 Snowflake에 적재하도록 구성됩니다.  
 
 ---
+
