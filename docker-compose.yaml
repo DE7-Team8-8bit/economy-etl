@@ -61,6 +61,24 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    # ... (기존 설정 유지) ...
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'    
+    # ----------------------------------------------------
+    # >> [수정 1] AWS Connection 설정 (aws_s3_connection ID 사용)
+    # ----------------------------------------------------
+    # Airflow 환경 변수 포맷: AIRFLOW_CONN_<CONN_ID>
+    # aws://<LOGIN>:<PASSWORD>@<HOST>?<EXTRA_PARAMS>
+    
+    # 이 라인은 Docker 실행 환경 (쉘 환경이나 .env 파일)에서 정의한 AWS 키를 사용해야 합니다.
+    # 예시: AIRFLOW_CONN_AWS_S3_CONNECTION: 'aws://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@?region_name=us-east-1'
+    # .env 파일에 AWS_ACCESS_KEY_ID와 AWS_SECRET_ACCESS_KEY를 정의하고 아래와 같이 추가합니다.
+    AIRFLOW_CONN_AWS_S3_CONNECTION: 'aws://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@?region_name=${AWS_DEFAULT_REGION:-us-east-1}' 
+    
+    # ----------------------------------------------------
+    
+    # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    # ... (기존 설정 유지) ...
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
