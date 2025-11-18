@@ -66,7 +66,9 @@ x-airflow-common:
     
     # AWS Connection
     AIRFLOW_CONN_MY_S3: "aws://?aws_access_key_id=${AWS_ACCESS_KEY_ID}&aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}&region_name=${AWS_DEFAULT_REGION:-us-east-1}"
-        
+
+    S3_BUCKET: 'economic-data-storage'
+
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # Additional environment variables to configure the Airflow instance can be set here or in the .env file
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
