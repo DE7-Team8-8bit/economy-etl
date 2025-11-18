@@ -53,8 +53,6 @@ x-airflow-common:
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.9.1}
   build: .
-  env_file:
-    - .env
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -66,32 +64,17 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     
-    # ... (기존 설정 유지) ...
-    # ----------------------------------------------------
-    # >> [수정 1] AWS Connection 설정 (aws_s3_connection ID 사용)
-    # ----------------------------------------------------
-    # Airflow 환경 변수 포맷: AIRFLOW_CONN_<CONN_ID>
-    # aws://<LOGIN>:<PASSWORD>@<HOST>?<EXTRA_PARAMS>
-    
-    # 이 라인은 Docker 실행 환경 (쉘 환경이나 .env 파일)에서 정의한 AWS 키를 사용해야 합니다.
-    # 예시: AIRFLOW_CONN_AWS_S3_CONNECTION: 'aws://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@?region_name=us-east-1'
-    # .env 파일에 AWS_ACCESS_KEY_ID와 AWS_SECRET_ACCESS_KEY를 정의하고 아래와 같이 추가합니다.
-    AIRFLOW_CONN_AWS_S3_CONNECTION: "aws://?aws_access_key_id=${AWS_ACCESS_KEY_ID}&aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}&region_name=${AWS_DEFAULT_REGION:-us-east-1}" 
-    PYTHONPATH: "/opt/airflow"
-    # ----------------------------------------------------    
-    # ... (기존 설정 유지) ...
-    # yamllint disable rule:line-length
-    # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
-    # yamllint enable rule:line-length
+    # AWS Connection
+    AIRFLOW_CONN_MY_S3: "aws://?aws_access_key_id=${AWS_ACCESS_KEY_ID}&aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}&region_name=${AWS_DEFAULT_REGION:-us-east-1}"
+        
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-    # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
-    # for other purpose (development, test and especially production usage) build/extend Airflow image.
+    # Additional environment variables to configure the Airflow instance can be set here or in the .env file
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
+    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     # - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     # - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
