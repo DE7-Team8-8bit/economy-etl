@@ -14,7 +14,42 @@ __pycache__/
 # OS files
 .DS_Store
 
-# Virtual env
+# Virtual env (already covered, but good to be explicit)
 venv/
 .env
 .env.*
+
+# ------------------------------------------------------------------
+# >> RECOMMENDED ADDITIONS (Based on Project Structure)
+# ------------------------------------------------------------------
+
+# 1. Local Data (Raw/Processed)
+# Prevent accidentally committing large data files downloaded locally
+raw-data
+data/processed/
+
+# 2. Local Airflow Files
+# Airflow temporary files, PIDs, Sockets
+.airflow/
+webserver_config.py
+
+# 3. Docker/Compose Runtime Files
+# Prevent committing large volumes or build artifacts
+volumes/
+*.zip # Often used for Docker context/plugins
+*.tar
+
+# 4. Jupyter Notebook Checkpoints & Output
+.ipynb_checkpoints/
+# Jupyter notebook output data (optional, only if notebook outputs are huge)
+# *.ipynb_checkpoints # already covered above
+
+# 5. Configuration Secrets (Crucial)
+# Although .env covers some, be explicit for high-priority secrets
+config/api_keys.yaml
+
+# 6. Airflow Runtime Files
+airflow-webserver.pid
+airflow.cfg
+airflow.db
+standalone_admin_password.txt
