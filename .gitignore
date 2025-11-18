@@ -47,3 +47,9 @@ volumes/
 # 5. Configuration Secrets (Crucial)
 # Although .env covers some, be explicit for high-priority secrets
 config/api_keys.yaml
+
+# 6. Airflow Runtime Files
+airflow-webserver.pid
+airflow.cfg
+airflow.db
+standalone_admin_password.txt
