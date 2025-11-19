@@ -7,26 +7,11 @@ import pandas as pd
 import boto3
 import io
 
+from src.exchange_interest_gold.extract_data import fetch_krw_usd_rate
+from src.exchange_interest_gold.load_data import upload_to_s3
+
 BUCKET_NAME = "economic-data-storage"
-S3_KEY_RAW = "raw-data/exchange_rate.csv"
-
-def fetch_krw_usd_rate():
-    # KRW/USD 환율 가져오기
-    df = yf.download("KRW=X", period="10d", interval="1h")
-    
-    csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer)
-    return csv_buffer.getvalue()
-
-def upload_to_s3(csv_data):
-
-    hook = S3Hook(aws_conn_id="my_s3")
-    hook.load_string(
-        string_data=csv_data,
-        key=S3_KEY_RAW,
-        bucket_name=BUCKET_NAME,
-        replace=True,
-    )
+S3_KEY_RAW_EXCHANGE_RATE = "raw-data/exchange_rate/exchange_rate.csv"
 
 with DAG(
     dag_id="exchange_rate_etl",
@@ -45,6 +30,7 @@ with DAG(
         task_id="upload_to_s3",
         python_callable=upload_to_s3,
         op_args=[fetch_task.output],     # CSV 결과 전달
+        op_kwargs={"s3_key": S3_KEY_RAW_EXCHANGE_RATE, "s3_bucket_name": BUCKET_NAME}
     )
 
     fetch_task >> upload_task

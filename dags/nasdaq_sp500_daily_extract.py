@@ -4,6 +4,7 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 import yfinance as yf
+import pytz
 import io
 
 # Configuration
@@ -21,19 +22,32 @@ default_args = {
 }
 
 def get_last_market_day():
-    """Calculate the most recent completed trading day"""
-    today = datetime.today()
+    """
+    미국 주식 시장 기준으로 가장 최근 완료된 거래일 계산
+    시장 종료 시간: 미국 동부 16:00 = 한국 06:00 (다음날)
+    """
+    # 미국 동부 시간
+    eastern = pytz.timezone('US/Eastern')
+    now_eastern = datetime.now(eastern)
     
-    if today.weekday() == 0:  # Monday
-        offset = 3
-    elif today.weekday() in [5, 6]:  # Weekend
-        offset = today.weekday() - 4
-    else:  # Tuesday-Friday
-        offset = 1
-        
-    return (today - timedelta(days=offset)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    # 시장 종료 시간 (오후 4시)
+    market_close = now_eastern.replace(hour=16, minute=0, second=0, microsecond=0)
+    
+    # 현재 시간이 종료 전이면 전날, 후면 오늘
+    if now_eastern < market_close:
+        target_date = now_eastern - timedelta(days=1)
+    else:
+        target_date = now_eastern
+    
+    # 주말이면 금요일로 이동
+    while target_date.weekday() >= 5:  # 5=Saturday, 6=Sunday
+        target_date -= timedelta(days=1)
+    
+    print(f"Current time (EST): {now_eastern}")
+    print(f"Market close time: {market_close}")
+    print(f"Target trading day: {target_date.strftime('%Y-%m-%d %A')}")
+    
+    return target_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 def extract_and_transform_stocks():
     """
@@ -66,20 +80,14 @@ def extract_and_transform_stocks():
         
         print(f"Raw data shape: {df.shape}")
         print(f"Raw columns: {df.columns}")
-        print(f"Index name: {df.index.name}")
-        print(f"Index type: {type(df.index)}")
         
         # Handle the datetime index/column
-        # yfinance returns data with a DatetimeIndex, not a column
         if isinstance(df.index, pd.DatetimeIndex):
             df = df.reset_index()
-            # The reset_index creates a column named 'Date' or 'Datetime' or 'index'
             if 'Date' in df.columns:
                 df.rename(columns={'Date': 'Datetime'}, inplace=True)
             elif 'index' in df.columns:
                 df.rename(columns={'index': 'Datetime'}, inplace=True)
-        
-        print(f"Columns after reset_index: {df.columns}")
         
         # Flatten MultiIndex columns if present
         if isinstance(df.columns, pd.MultiIndex):
@@ -87,14 +95,11 @@ def extract_and_transform_stocks():
             for col in df.columns:
                 if isinstance(col, tuple):
                     ticker, price = col
-                    # Special handling for Datetime column (which comes as ('Datetime', ''))
                     if ticker == 'Datetime' and price == '':
                         new_cols.append('Datetime')
                     elif price == '':
-                        # Just in case there are other columns with empty second level
                         new_cols.append(ticker)
                     else:
-                        # Normal ticker columns
                         new_cols.append(f"{ticker}_{price}")
                 else:
                     new_cols.append(col)
@@ -113,31 +118,30 @@ def extract_and_transform_stocks():
             value_name='Value'
         )
         
-        # Split Ticker_Price into separate columns
         df_long[['Ticker', 'Price']] = df_long['Ticker_Price'].str.rsplit('_', n=1, expand=True)
         
-        # Pivot to get separate columns for each price type
         df_clean = df_long.pivot_table(
             index=['Datetime', 'Ticker'], 
             columns='Price', 
             values='Value'
         ).reset_index()
         
-        # Rename columns to match expected format
+        # Rename to match Snowflake table
         df_clean = df_clean.rename(columns={
-            'Open': 'Open_Price',
-            'High': 'High_Price',
-            'Low': 'Low_Price',
-            'Close': 'Close_Price',
+            'Open': 'Open',
+            'High': 'High',
+            'Low': 'Low',
+            'Close': 'Close',
             'Volume': 'Volume'
         })
         
-        # Ensure column order
-        expected_cols = ['Datetime', 'Ticker', 'Open_Price', 'High_Price', 'Low_Price', 'Close_Price', 'Volume']
+        # Ensure column order matches Snowflake
+        expected_cols = ['Datetime', 'Ticker', 'Open', 'High', 'Low', 'Close', 'Volume']
         df_clean = df_clean[[col for col in expected_cols if col in df_clean.columns]]
         
         print(f"Final data shape: {df_clean.shape}")
         print(f"Final columns: {df_clean.columns.tolist()}")
+        print(f"Date range: {df_clean['Datetime'].min()} to {df_clean['Datetime'].max()}")
         print(f"Sample data:\n{df_clean.head()}")
         
         # Convert to CSV string
@@ -145,7 +149,6 @@ def extract_and_transform_stocks():
         df_clean.to_csv(csv_buffer, index=False)
         csv_data = csv_buffer.getvalue()
         
-        # Return both CSV data and the date string for the filename
         return {
             'csv_data': csv_data,
             'date_str': start
@@ -159,7 +162,6 @@ def extract_and_transform_stocks():
 
 def upload_to_s3(**context):
     """Upload the CSV data to S3"""
-    # Get data from previous task
     ti = context['ti']
     result = ti.xcom_pull(task_ids='extract_and_transform')
     
@@ -170,7 +172,6 @@ def upload_to_s3(**context):
     csv_data = result['csv_data']
     date_str = result['date_str']
     
-    # Define S3 path
     s3_key = f"raw-data/nasdaq_sp500/stocks_{date_str}.csv"
     
     print(f"Uploading to s3://{BUCKET_NAME}/{s3_key}")
@@ -187,7 +188,6 @@ def upload_to_s3(**context):
         
         print(f"✅ Successfully uploaded to s3://{BUCKET_NAME}/{s3_key}")
         
-        # Verify upload
         if hook.check_for_key(key=s3_key, bucket_name=BUCKET_NAME):
             print("✅ Verified: File exists in S3!")
         else:
@@ -201,7 +201,7 @@ with DAG(
     dag_id="nasdaq_sp500_daily_extract",
     default_args=default_args,
     description="Fetch and upload NASDAQ + S&P500 data for the previous trading day.",
-    schedule_interval="0 9 * * 1-5",  # 9 AM on weekdays
+    schedule_interval="0 9 * * 1-5",  # 9 AM KST on weekdays (after US market closes)
     start_date=datetime(2025, 11, 17, tzinfo=timezone.utc),
     catchup=False,
     tags=["finance", "raw_data", "s3"],

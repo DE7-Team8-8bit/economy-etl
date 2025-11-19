@@ -22,4 +22,4 @@ python-dotenv
 # --- Airflow Dependencies (Packages needed for Airflow to run your code) ---
 apache-airflow-providers-slack 
 apache-airflow-providers-amazon
-apache-airflow-providers-snowflake
+apache-airflow-providers-snowflakepytz
