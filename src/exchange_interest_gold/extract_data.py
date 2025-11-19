@@ -9,6 +9,7 @@ import io
 import os
 import requests
 
+
 def fetch_gold_price():
     # 금 가격 가져오기
     df = yf.download("GC=F", period="5d", interval="1h")
