@@ -6,26 +6,11 @@ import yfinance as yf
 import pandas as pd
 import io
 
+from src.exchange_interest_gold.extract_data import fetch_gold_price
+from src.exchange_interest_gold.load_data import upload_to_s3
+
 BUCKET_NAME = "economic-data-storage"
-S3_KEY_RAW_GOLD = "raw-data/gold_price.csv"
-
-def fetch_gold_price():
-    # 금 가격 가져오기
-    df = yf.download("GC=F", period="5d", interval="1h")
-
-    csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer)
-    return csv_buffer.getvalue()
-
-def upload_to_s3(csv_data: str, s3_key: str):
-
-    hook = S3Hook(aws_conn_id="my_s3")
-    hook.load_string(
-        string_data=csv_data,
-        key=s3_key,
-        bucket_name=BUCKET_NAME,
-        replace=True,
-    )
+S3_KEY_RAW_GOLD = "raw-data/gold_price/gold_price.csv"
 
 with DAG(
     dag_id="gold_price_etl",
@@ -44,7 +29,7 @@ with DAG(
         task_id="upload_to_s3",
         python_callable=upload_to_s3,
         op_args=[fetch_gold.output],     # CSV 결과 전달
-        op_kwargs={"s3_key": S3_KEY_RAW_GOLD}
+        op_kwargs={"s3_key": S3_KEY_RAW_GOLD, "s3_bucket_name": BUCKET_NAME}
     )
 
     fetch_gold >> upload_gold
