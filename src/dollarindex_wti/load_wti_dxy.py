@@ -6,36 +6,68 @@ import boto3
 from io import StringIO
 from datetime import datetime
 
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID") 
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY") 
+AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET") 
+AWS_REGION = os.getenv("AWS_REGION")
 
-def upload_df_to_s3(df, folder):
-    aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
-    aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_REGION")
-    bucket = os.getenv("AWS_S3_BUCKET")
-
-    # if not aws_access_key or not aws_secret_key or not bucket:
-    #     raise ValueError("AWS 환경변수가 설정되지 않았습니다.")
-
+def upload_raw_to_s3(df, data_type):
     s3 = boto3.client(
         "s3",
-        aws_access_key_id=aws_access_key,
-        aws_secret_access_key=aws_secret_key,
-        region_name=aws_region
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY,
+            region_name=AWS_REGION
     )
-
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    key = f"{folder}/{timestamp}.csv"
 
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False)
 
+    if data_type == "dxy":
+        prefix = "raw-data/dollar_index"
+    else:
+        prefix = "raw-data/oil_index"
+
+    key = f"{prefix}/raw_{data_type}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+
+    
+
     s3.put_object(
-        Bucket=bucket,
+        Bucket=AWS_S3_BUCKET,
         Key=key,
-        Body=csv_buffer.getvalue().encode("utf-8")
+        Body=csv_buffer.getvalue(),
+        ContentType="text/csv"
     )
 
-    return key
+    print(f"Uploaded to S3: {key}")
+    print(f"[DEBUG] bucket from env = {AWS_S3_BUCKET!r}") #디버깅용
+
+
+def upload_processed_to_s3(df, data_type):
+    s3 = boto3.client(
+        "s3",
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY,
+            region_name=AWS_REGION
+    )
+
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False)
+    
+    if data_type == "dxy":
+        prefix = "processed-data/dollar_index"
+    else:
+        prefix = "processed-data/oil_index"
+    key = f"{prefix}/processed_{data_type}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+
+
+    s3.put_object(
+        Bucket=AWS_S3_BUCKET,
+        Key=key,
+        Body=csv_buffer.getvalue(),
+        ContentType="text/csv",
+    )
+
+    print(f"Uploaded processed data to: {key}")
 
 if __name__ == "__main__":
     from dotenv import load_dotenv

@@ -1,30 +1,29 @@
-import sys
-import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+from io import StringIO
 
-AIRFLOW_HOME = os.getenv("AIRFLOW_HOME", "/opt/airflow")
-PROJECT_ROOT = os.path.join(AIRFLOW_HOME, "src")
-if PROJECT_ROOT not in sys.path:
-    sys.path.append(PROJECT_ROOT)
 
-from src.dollarindex_wti.extract_dxy_yfinance import fetch_dxy_yfinance
-from src.dollarindex_wti.extract_wti_yfinance import fetch_wti_yfinance
-from src.dollarindex_wti.transform_wti_dxy import transform_dxy, transform_wti
-from src.dollarindex_wti.load_wti_dxy import upload_df_to_s3
+from dollarindex_wti.extract_dxy_yfinance import fetch_dxy_yfinance
+from dollarindex_wti.extract_wti_yfinance import fetch_wti_yfinance
+from dollarindex_wti.transform_wti_dxy import transform_dxy, transform_wti
+from dollarindex_wti.load_wti_dxy import upload_raw_to_s3, upload_processed_to_s3
 
 
 def run_dxy_etl():
-    df = fetch_dxy_yfinance()
-    df = transform_dxy(df)
-    upload_df_to_s3(df, "dxy")
+    df_raw = fetch_dxy_yfinance()       
+    upload_raw_to_s3(df_raw, "dxy")     
+    
+    df_processed = transform_dxy(df_raw) 
+    upload_processed_to_s3(df_processed, "dxy") 
 
 
 def run_wti_etl():
-    df = fetch_wti_yfinance()
-    df = transform_wti(df)
-    upload_df_to_s3(df, "wti")
+    df_raw = fetch_wti_yfinance()
+    upload_raw_to_s3(df_raw, "wti")
+
+    df_processed = transform_wti(df_raw)
+    upload_processed_to_s3(df_processed, "wti")
 
 
 default_args = {

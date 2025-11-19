@@ -1,28 +1,24 @@
 def transform_dxy(df):
     df = df.copy()
-    df = df.rename(columns={
-        "Datetime": "timestamp",
-        "Open": "open",
-        "High": "high",
-        "Low": "low",
-        "Close": "close",
-        "Volume": "volume"
-    })
-    df["symbol"] = "DXY"
-    df = df[["timestamp", "open", "high", "low", "close", "volume", "symbol"]]
+
+    df["TIMESTAMP"] = df["Datetime"].astype(str)
+    df["PRICE"] = df["Close"].round(2)
+    df["SYMBOL"] = "DXY"
+
+    df = df[["TIMESTAMP", "SYMBOL", "PRICE"]]
+
     return df
+
 
 
 def transform_wti(df):
     df = df.copy()
-    df = df.rename(columns={
-        "Datetime": "timestamp",
-        "Open": "open",
-        "High": "high",
-        "Low": "low",
-        "Close": "close",
-        "Volume": "volume"
-    })
-    df["symbol"] = "WTI"
-    df = df[["timestamp", "open", "high", "low", "close", "volume", "symbol"]]
+
+    df["TIMESTAMP"] = df["Datetime"].astype(str)
+    df["PRICE"] = df["Close"].round(2)
+    df["SYMBOL"] = "WTI"
+
+    df = df[["TIMESTAMP", "SYMBOL", "PRICE"]]
+
     return df
+

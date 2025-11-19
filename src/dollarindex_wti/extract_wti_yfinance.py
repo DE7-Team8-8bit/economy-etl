@@ -2,7 +2,7 @@ import yfinance as yf
 
 def fetch_wti_yfinance():
     df = yf.download(
-        "WTIC/USD", 
+        "CL=F", 
         interval="1h",
         period="2d",
         auto_adjust=True
