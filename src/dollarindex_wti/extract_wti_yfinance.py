@@ -4,7 +4,7 @@ def fetch_wti_yfinance():
     df = yf.download(
         "CL=F", 
         interval="1h",
-        period="2d",
+        period="4d",
         auto_adjust=True
     )
     df = df.reset_index()
