@@ -110,7 +110,7 @@ economic-etl/
 ├── .github/
 ├── config/
 ├── dags/
-|   ├──crypto/
+│   ├──crypto/
 │   ├── crypto_etl.py
 │   ├── exchange_rate_etl.py
 │   ├── gold_price_etl.py
@@ -143,3 +143,4 @@ economic-etl/
 - API Streaming 방식 실험
 - Factor & Dimension Table 분리 설계
 - 이상치 감지 기반 예측 모델 실험 가능
+
