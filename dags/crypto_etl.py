@@ -2,6 +2,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from airflow.utils.dates import days_ago
+from crypto.load_snowflake import load_crypto_to_snowflake
+
 import os
 
 # 우리가 수정한 모듈들 불러오기
@@ -100,5 +102,10 @@ with DAG(
         provide_context=True
     )
 
-    # 실행 순서: Extract -> Transform
-    task_extract >> task_transform
+    task_load_snowflake = PythonOperator(
+        task_id="load_to_snowflake",
+        python_callable=load_crypto_to_snowflake
+    )
+
+    # 실행 순서: Extract -> Transform -> Load to Snowflake
+    task_extract >> task_transform >> task_load_snowflake
