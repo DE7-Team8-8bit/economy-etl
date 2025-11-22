@@ -1,11 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from datetime import datetime, timedelta
-import yfinance as yf
-import pandas as pd
-import io
-from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 
 
 from src.exchange_interest_gold.extract_data import fetch_gold_price

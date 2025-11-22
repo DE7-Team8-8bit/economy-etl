@@ -1,12 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from datetime import datetime, timedelta
-import yfinance as yf
-import pandas as pd
-import io
-from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-
 
 from src.exchange_interest_gold.extract_data import fetch_krw_usd_rate
 from src.exchange_interest_gold.load_data import upload_to_s3, fetch_csv_from_s3
@@ -61,7 +55,7 @@ default_args = {
 
 with DAG(
     dag_id="exchange_rate_etl",
-    start_date=datetime(2025, 11, 20, 1, 0),
+    start_date=datetime(2025, 11, 17, 1, 0),
     schedule_interval="58 * * * *",
     # schedule_interval=None,   # 스케줄 고려 X → 수동 실행용
     catchup=True,                             
