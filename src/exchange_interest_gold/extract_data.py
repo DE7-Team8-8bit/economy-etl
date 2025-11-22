@@ -1,10 +1,6 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from datetime import datetime, timedelta
+from datetime import timedelta
 import yfinance as yf
 import pandas as pd
-import boto3
 import io
 import os
 import requests
@@ -12,7 +8,6 @@ import requests
 
 def fetch_gold_price(**context):
     # 금 가격 가져오기
-    # df = yf.download("GC=F", period="5d", interval="1h")
 
     logical_dt = context["logical_date"]
     end = logical_dt
@@ -23,7 +18,6 @@ def fetch_gold_price(**context):
     latest = df.tail(1)
 
     csv_buffer = io.StringIO()
-    # df.to_csv(csv_buffer)
     latest.to_csv(csv_buffer)
     return csv_buffer.getvalue()
 
@@ -33,13 +27,12 @@ def fetch_krw_usd_rate(**context):
     logical_dt = context["logical_date"]
     end = logical_dt
     start = end - timedelta(hours=4)
-    df = yf.download("GC=F", start=start, end=end, interval="1h")
+    df = yf.download("KRW=X", start=start, end=end, interval="1h")
 
     
     latest = df.tail(1)
 
     csv_buffer = io.StringIO()
-    # df.to_csv(csv_buffer)
     latest.to_csv(csv_buffer)
     return csv_buffer.getvalue()
 

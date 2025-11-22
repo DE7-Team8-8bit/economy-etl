@@ -1,29 +1,6 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from dotenv import load_dotenv
-import os
-from datetime import datetime
-import yfinance as yf
-import pandas as pd
-import io
-import requests
 
 def upload_to_s3(csv_data: str, s3_key: str, s3_bucket_name: str):
-
-    # logical_dt = kwargs.get("logical_date")
-
-    # if logical_dt is None:
-    #     s3_key_with_ts = s3_key
-    # else:
-    #     timestamp = logical_dt.strftime("%Y%m%d_%H")  # 예: 20251120_10
-    #     # timestamp 붙이기
-    #     s3_key_with_ts = f"{s3_key}_{timestamp}.csv"
-
-    # DAG 실행 logical_date (실제 Task 실행 시간 아님)
-    # logical_dt = kwargs["logical_date"]     # datetime 객체
-    
-    
 
     hook = S3Hook(aws_conn_id="my_s3")
     hook.load_string(
