@@ -56,8 +56,8 @@ default_args = {
 
 with DAG(
     dag_id="interest_rate_etl",
-    start_date=datetime(2025, 11, 20, 1, 0),
-    schedule_interval="28 * * * *",
+    start_date=datetime(2025, 9, 1, 1, 0),
+    schedule_interval="0 0 1 * *",
     # schedule_interval=None,   # 스케줄 고려 X → 수동 실행용
     catchup=True,                             
     # catchup=False,
