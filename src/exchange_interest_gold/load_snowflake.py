@@ -65,6 +65,25 @@ def make_snowflake_table(table_name: str):
         cs.close()
         conn.close()
     
+def make_interest_snowflake_table(table_name: str):
+    conn = get_snowflake_connection()
+    cs = conn.cursor()
+
+    try:
+        query = f"""
+        CREATE TABLE IF NOT EXISTS ECONOMIC_DATA.RAW_DATA.{table_name.upper()} (
+            DATETIME TIMESTAMP_TZ,
+            PRICE    NUMBER(18,4)
+        );
+        """
+        cs.execute(query)
+        print(f"[INFO] {table_name} 테이블 생성 성공")
+    except Exception as e:
+        print(f"[INFO] {table_name} 테이블 생성 실패", e)
+        raise
+    finally:
+        cs.close()
+        conn.close()
 
 def copy_into_snowflake(table_name: str, **context):
     conn = get_snowflake_connection()
@@ -75,6 +94,34 @@ def copy_into_snowflake(table_name: str, **context):
         query=f"""
         COPY INTO ECONOMIC_DATA.RAW_DATA.{table_name.upper()}
             (DATETIME, PRICE, VOLUME)
+        FROM @ECONOMIC_DATA.RAW_DATA.{table_name.upper()}
+        FILES = ('{table_name}_{ logical_date.strftime("%Y%m%d_%H") }.csv')   -- S3에 올라간 파일 이름
+        FILE_FORMAT = (
+            TYPE = CSV
+            FIELD_DELIMITER = ','
+            SKIP_HEADER = 1
+            NULL_IF = ('NULL', 'null')
+        )
+        ON_ERROR = 'CONTINUE';"""
+
+        cs.execute(query)
+        print(f"[INFO] {table_name} 테이블 copy 성공")
+    except Exception as e:
+        print(f"[INFO] {table_name} copy 실패", e)
+        raise
+    finally:
+        cs.close()
+        conn.close()
+
+def copy_interest_into_snowflake(table_name: str, **context):
+    conn = get_snowflake_connection()
+    cs = conn.cursor()
+    logical_date = context["logical_date"]
+
+    try:
+        query=f"""
+        COPY INTO ECONOMIC_DATA.RAW_DATA.{table_name.upper()}
+            (DATETIME, PRICE)
         FROM @ECONOMIC_DATA.RAW_DATA.{table_name.upper()}
         FILES = ('{table_name}_{ logical_date.strftime("%Y%m%d_%H") }.csv')   -- S3에 올라간 파일 이름
         FILE_FORMAT = (
