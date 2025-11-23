@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from src.exchange_interest_gold.extract_data import fetch_interest_rate
 from src.exchange_interest_gold.load_data import upload_to_s3, fetch_csv_from_s3
 from src.exchange_interest_gold.transform_data import filter_interest_rate
-from src.exchange_interest_gold.load_snowflake import make_snowflake_stage,make_snowflake_table,copy_into_snowflake,make_snowflake_view
+from src.exchange_interest_gold.load_snowflake import make_snowflake_stage,make_interest_snowflake_table,copy_interest_into_snowflake
 
 BUCKET_NAME = "economic-data-storage"
 S3_KEY_RAW_INTEREST = "raw-data/ginterest_rate/interest_rate"
@@ -43,8 +43,8 @@ def interest_rate_transform(bucket: str, raw_key:str, filtered_key: str, **conte
 def load_data_snowflake(table_name: str, **context):
 
     make_snowflake_stage(table_name)
-    make_snowflake_table(table_name)
-    copy_into_snowflake(table_name, **context)
+    make_interest_snowflake_table(table_name)
+    copy_interest_into_snowflake(table_name, **context)
     # make_snowflake_view(table_name)
 
 
