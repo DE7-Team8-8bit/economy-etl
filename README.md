@@ -111,12 +111,12 @@ economic-etl/
 ├── config/                      # 환경변수, connection 설정
 ├── dags/                        # Airflow DAGs
 │   ├── crypto/                  # 가상화폐 관련 ETL DAG 폴더
-│   ├── crypto_etl.py                  # 가상화폐 ETL DAG
-│   ├── exchange_rate_etl.py           # 환율 ETL DAG
-│   ├── gold_price_etl.py              # 금 가격 ETL DAG
-│   ├── interest_rate_etl.py           # 금리 ETL DAG
-│   ├── load_stocks_to_snowflake.py    # S3 -> Snowflake loading DAG
-│   ├── nasdaq_sp500_daily_extract.py  # NASDAQ + S&P500 ETL DAG
+│   ├── crypto_etl.py            # 가상화폐 ETL DAG
+│   ├── exchange_rate_etl.py     # 환율 ETL DAG
+│   ├── gold_price_etl.py        # 금 가격 ETL DAG
+│   ├── interest_rate_etl.py     # 금리 ETL DAG
+│   ├── load_stocks_to_snowflake.py  # S3 -> Snowflake loading DAG
+│   ├── nasdaq_sp500_daily_extract.py # NASDAQ + S&P500 ETL DAG
 │   └── wti_dxy_etl.py
 ├── deployment/                  # Docker / CI-CD 관련 파일
 ├── queries/                     # SQL / Airflow 쿼리 모음
@@ -139,23 +139,40 @@ economic-etl/
 
 # 6. Setup & 실행 가이드
 
-1. 의존성 설치
+## 6.1 의존성 설치
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Airflow S3 Connection 설정
-   Airflow UI에서 my_s3 AWS Connection 추가
+## 6.2 환경변수 설정
+```.env``` 파일 생성 및 값 입력:
+```ini
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_DEFAULT_REGION=us-east-1
+SNOWFLAKE_USER=...
+SNOWFLAKE_PASSWORD=...
+SNOWFLAKE_ACCOUNT=...
+```
 
-3. Airflow 초기화 & 실행
+## 6.3 Airflow Connection 설정
+- Airflow UI에서 my_s3 AWS Connection 추가
+- Snowflake Connection 추가ebserver
+
+## 6.4 Airflow 초기화 & 실행
 ```bash
 airflow db init
 airflow scheduler
 airflow webserver
 ```
 
-4. DAG Schedule
-```nasdaq_sp500_daily_extract``` DAG: 주중 9 AM KST 실행 (미국 시장 종료 후)
+## 6.5 DAG 실행
+- 자동 스케줄: DAG별 정의된 시간 (예: ```nasdaq_sp500_daily_extract```: 주중 9 AM KST)
+- 수동 실행: Airflow UI → DAG 선택 → Trigger DAG
+
+6.6 결과 확인
+- S3 업로드 확인: ```s3://economic-data-storage/raw-data/...```
+- Snowflake 적재 확인: ```SELECT COUNT(*) FROM ECONOMIC_DATA.RAW_DATA.STOCK_PRICES;```
 
 ---
 
@@ -167,4 +184,9 @@ airflow webserver
 - Factor & Dimension Table 분리 설계
 - 이상치 감지 기반 예측 모델 실험 가능
 
+# 8. 기여 가이드
+- 브랜치 전략: ```dev``` → 기능 개발, ```main``` → 배포용
+- PR 규칙: 작업 완료 후 ```dev```에 PR → 코드 리뷰 → merge
+- 커밋 메시지: 기능/버그/문서 등 명확하게 작성
+- 코드 스타일: PEP8 / Docstring 포함 필수
 
