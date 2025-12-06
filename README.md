@@ -107,40 +107,64 @@
 
 ```bash
 economic-etl/
-├── .github/
-├── config/
-├── dags/
-│   ├──crypto/
-│   ├── crypto_etl.py
-│   ├── exchange_rate_etl.py
-│   ├── gold_price_etl.py
-│   ├── interest_rate_etl.py
-│   ├── load_stocks_to_snowflake.py
-│   ├── nasdaq_sp500_daily_extract.py
+├── .github/                     # GitHub workflow, templates
+├── config/                      # 환경변수, connection 설정
+├── dags/                        # Airflow DAGs
+│   ├── crypto/                  # 가상화폐 관련 ETL DAG 폴더
+│   ├── crypto_etl.py                  # 가상화폐 ETL DAG
+│   ├── exchange_rate_etl.py           # 환율 ETL DAG
+│   ├── gold_price_etl.py              # 금 가격 ETL DAG
+│   ├── interest_rate_etl.py           # 금리 ETL DAG
+│   ├── load_stocks_to_snowflake.py    # S3 -> Snowflake loading DAG
+│   ├── nasdaq_sp500_daily_extract.py  # NASDAQ + S&P500 ETL DAG
 │   └── wti_dxy_etl.py
-├── deployment/
-├── queries/
+├── deployment/                  # Docker / CI-CD 관련 파일
+├── queries/                     # SQL / Airflow 쿼리 모음
 │   ├── airflow/
 │   └── snowflake/
-├── src/
-│   ├── common/
+├── src/                         # ETL 모듈 소스 코드
+│   ├── common/                  # 공통 함수 및 유틸리티
 │   ├── dollarindex_wti/
 │   ├── exchange_interest_gold/
 │   ├── nasdaq_sp500/
 │   └── __init__.py
-├── .env.example
+├── .env.example                 # 환경변수 예시
 ├── .gitignore
 ├── Dockerfile
 ├── docker-compose.yaml
 ├── requirements.txt
 └── README.md
 ```
+---
 
-# 6. 향후 확장 방향
+# 6. Setup & 실행 가이드
+
+1. 의존성 설치
+```bash
+pip install -r requirements.txt
+```
+
+2. Airflow S3 Connection 설정
+   Airflow UI에서 my_s3 AWS Connection 추가
+
+3. Airflow 초기화 & 실행
+```bash
+airflow db init
+airflow scheduler
+airflow webserver
+```
+
+4. DAG Schedule
+```nasdaq_sp500_daily_extract``` DAG: 주중 9 AM KST 실행 (미국 시장 종료 후)
+
+---
+
+# 7. 향후 확장 방향
 
 - dbt 모델링 → 데이터마트 구조로 확장
 - Slack Alert → 경제지표들의 변동성 알림
 - API Streaming 방식 실험
 - Factor & Dimension Table 분리 설계
 - 이상치 감지 기반 예측 모델 실험 가능
+
 
