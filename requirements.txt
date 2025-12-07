@@ -1,0 +1,26 @@
+# --- Core Data Handling ---
+pandas
+numpy
+
+# --- API Connectors ---
+yfinance
+python-binance
+fredapi
+requests  # Useful for general API calls (e.g., ECOS, Opinet)
+
+# --- AWS & S3 ---
+# boto3 # <-- REMOVE THIS LINE
+# The functionality is covered by apache-airflow-providers-amazon
+
+# --- Snowflake Connector ---
+snowflake-connector-python
+snowflake-sqlalchemy
+
+# --- .env ---
+python-dotenv
+
+# --- Airflow Dependencies (Packages needed for Airflow to run your code) ---
+apache-airflow-providers-slack 
+apache-airflow-providers-amazon
+apache-airflow-providers-snowflake
+pytz
